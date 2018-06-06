@@ -1,0 +1,633 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>赌场开幕啦</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        .right_plan {
+            width: 70%;
+            display: inline-block;
+        }
+        
+        .left_plan {
+            display: inline-block;
+            vertical-align: top;
+            width: 29%;
+        }
+        
+        .row {
+            display: flex;
+            margin-bottom: 40px;
+        }
+        
+        .fan {
+            display: inline-block;
+            height: 200px;
+            border: 1px solid red;
+            flex: 1;
+            /*margin: 0 10px 0 10px;*/
+            position: relative;
+        }
+        
+        .w_row {
+            width: 400px;
+        }
+        
+        .w_fan {
+            display: inline-block;
+            width: 195px;
+            height: 66px;
+            border: 1px solid red;
+            position: relative;
+        }
+        
+        .saizi {
+            display: inline-block;
+            height: 50px;
+            width: 18%;
+            border: 1px solid black;
+            color: black;
+            line-height: 50px;
+        }
+        
+        .first>.fan {
+            height: 50px;
+            text-align: center;
+        }
+        
+        .coin_fan {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .coin {
+            /*background: green;*/
+            color: white;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            line-height: 40px;
+            text-align: center;
+            z-index: 999;
+        }
+        
+        .zhong {
+            /*中奖的clss*/
+            background-color: aquamarine;
+        }
+        
+        .fanbei {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #f27777;
+            color: #ffe516;
+            font-size: 20px;
+            font-weight: bold;
+            height: 60%;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .fanbei_button {
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border: 1px solid;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <play></play>
+    </div>
+
+    <template id="play">
+        <div>
+            <div class="right_plan">
+                <div class="row first">
+                    <div class="fan">
+                        倒计时 ： {{showPerTime}}
+                    </div>
+                    <div class="fan">
+                        <div class="saizi">{{one}}</div>
+                        <div class="saizi">{{two}}</div>
+                        <div class="saizi">{{three}}</div>
+                        <span style="display: inline-block;">结果: </span>
+                        <span style="display: inline-block;width:30px;">{{total}}</span>
+                    </div>
+                    <div class="fan">
+                        <span>余额 : </span>
+                        <span>{{chou}}</span>
+                        <button @click="geiwoqian">重来</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="fan" @click="xiazhu(f_list[0],perXiazhu)" v-bind:class="{ zhong: jg[f_list[0].name] !== undefined }">
+                        {{f_list[0].value}}
+                        <div>率：{{pei_biao[f_list[0].name]}}</div>
+                        <div class="coin_fan">
+                            <div class="coin" v-for="player in players" v-show="player.by[f_list[0].name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,f_list[0])}}</div>
+                        </div>
+                    </div>
+                    <div class="fan" @click="xiazhu(f_list[1],perXiazhu)" v-bind:class="{ zhong: jg[f_list[1].name] !== undefined }">
+                        {{f_list[1].value}}
+                        <div>率：{{pei_biao[f_list[1].name]}}</div>
+                        <div class="fanbei" v-show="fanbei_by[f_list[1].name] !== undefined">{{fanbei}}倍</div>
+                        <div class="coin_fan">
+                            <div class="coin" v-for="player in players" v-show="player.by[f_list[1].name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,f_list[1])}}</div>
+                        </div>
+                    </div>
+                    <div class="w_row">
+                        <div class="w_fan" v-for="item in w_list" @click="xiazhu(item,perXiazhu)" v-bind:class="{ zhong: jg[item.name] !== undefined }">
+                            {{item.value}}
+                            <div>率：{{pei_biao[item.name]}}</div>
+                            <div class="fanbei" v-show="fanbei_by[item.name] !== undefined">{{fanbei}}倍</div>
+                            <div class="coin_fan">
+                                <div class="coin" v-for="player in players" v-show="player.by[item.name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,item)}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fan" @click="xiazhu(f_list[2],perXiazhu)" v-bind:class="{ zhong: jg[f_list[2].name] !== undefined }">
+                        {{f_list[2].value}}
+                        <div>率：{{pei_biao[f_list[2].name]}}</div>
+                        <div class="coin_fan">
+                            <div class="coin" v-for="player in players" v-show="player.by[f_list[2].name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,f_list[2])}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="fan" v-for="item in zd_list" @click="xiazhu(item,perXiazhu)" v-bind:class="{ zhong: jg[item.name] !== undefined }">
+                        {{item.value}}
+                        <div>率：{{pei_biao[item.name]}}</div>
+                        <div class="fanbei" v-show="fanbei_by[item.name] !== undefined">{{fanbei}}倍</div>
+                        <div class="coin_fan">
+                            <div class="coin" v-for="player in players" v-show="player.by[item.name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,item)}}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="fan">
+                        <div @click="fanbei = 1" class="fanbei_button" v-bind:class="{ zhong: fanbei == 1 }">无翻倍</div>
+                        <div @click="fanbei = 2" class="fanbei_button" v-bind:class="{ zhong: fanbei == 2 }">随机2倍</div>
+                        <div @click="fanbei = 3" class="fanbei_button" v-bind:class="{ zhong: fanbei == 3 }">随机3倍</div>
+                    </div>
+                    <div class="fan" v-for="item in d_list" @click="xiazhu(item,perXiazhu)" v-bind:class="{ zhong: jg[item.name] !== undefined }">
+                        {{item.value}}
+                        <div>率：{{pei_biao[item.name]}}</div>
+                        <div class="fanbei" v-show="fanbei_by[item.name] !== undefined">{{fanbei}}倍</div>
+                        <div class="coin_fan">
+                            <div class="coin" v-for="player in players" v-show="player.by[item.name] !== undefined" :style="{ background: player.coin_color}">{{showChou2(player,item)}}</div>
+                        </div>
+
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <!--<button v-bind:disabled="canGo" @click="go">开始</button>-->
+                    <button @click="aotugo">自动</button>
+                    <button @click="cancel_aotugo">取消自动</button>
+                </div>
+            </div>
+            <div class="left_plan">
+                <h4 style="text-align: center">玩家</h4>
+                <div class="playlist_div">
+                    <p v-for="play in players">
+                        <span :style="{background:play.coin_color}" style="display: inline-block;width: 20px;height: 20px;border-radius: 10px"></span>
+                        <span>用户名 : {{play.username}}</span>
+                        <span>余额 : {{play.chou}}</span>
+                    </p>
+                </div>
+
+                <div>
+                    <div style="height: 250px;width: 100%; border: 1px solid red;overflow: scroll">
+                        <p v-for="say in saylist">{{say}}</p>
+                    </div>
+                    <div>
+                        <input type="text" v-model="saytext">
+                        <button @click="say">发送</button>
+                    </div>
+                    <div style="height: 100px;width: 100%; border: 1px solid red;margin-top:50px;">
+                        <p>每次下注金额</p>
+                        <button :style="{background:coin_color}" class="coin" @click="perXiazhu=10">10</button>
+                        <button :style="{background:coin_color}" class="coin" @click="perXiazhu=50">50</button>
+                        <button :style="{background:coin_color}" class="coin" @click="perXiazhu=100">100</button>
+                        <button :style="{background:coin_color}" class="coin" @click="perXiazhu=500">500</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</body>
+
+</html>
+
+<script src="/static/js/vue.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var app = new Vue({
+        el: "#app",
+        components: {
+            'play': {
+                template:"#play",
+                data() {
+                    return {
+                        // canGo: null,
+                        pei_biao: { //赔率
+                            s: 1,
+                            w: 24,
+                            b: 1,
+                            w_1: 150,
+                            w_2: 150,
+                            w_3: 150,
+                            w_4: 150,
+                            w_5: 150,
+                            w_6: 150,
+                            d_1: 1,
+                            d_2: 1,
+                            d_3: 1,
+                            d_4: 1,
+                            d_5: 1,
+                            d_6: 1,
+                            zd_4: 50,
+                            zd_5: 18,
+                            zd_6: 14,
+                            zd_7: 12,
+                            zd_8: 8,
+                            zd_9: 6,
+                            zd_10: 6,
+                            zd_11: 6,
+                            zd_12: 6,
+                            zd_13: 8,
+                            zd_14: 12,
+                            zd_15: 14,
+                            zd_16: 18,
+                            zd_17: 50,
+                        },
+                        f_list: [
+                            { name: 's', value: '小' },
+                            { name: 'w', value: '围' },
+                            { name: 'b', value: '大' }
+                        ],
+                        w_list: [
+                            { name: 'w_1', value: '围1' },
+                            { name: 'w_2', value: '围2' },
+                            { name: 'w_3', value: '围3' },
+                            { name: 'w_4', value: '围4' },
+                            { name: 'w_5', value: '围5' },
+                            { name: 'w_6', value: '围6' },
+                        ],
+                        d_list: [ //猜单个点数
+                            { name: 'd_1', value: 1 },
+                            { name: 'd_2', value: 2 },
+                            { name: 'd_3', value: 3 },
+                            { name: 'd_4', value: 4 },
+                            { name: 'd_5', value: 5 },
+                            { name: 'd_6', value: 6 },
+                        ],
+                        zd_list: [//猜总点数
+                            { name: 'zd_4', value: 4 },
+                            { name: 'zd_5', value: 5 },
+                            { name: 'zd_6', value: 6 },
+                            { name: 'zd_7', value: 7 },
+                            { name: 'zd_8', value: 8 },
+                            { name: 'zd_9', value: 9 },
+                            { name: 'zd_10', value: 10 },
+                            { name: 'zd_11', value: 11 },
+                            { name: 'zd_12', value: 12 },
+                            { name: 'zd_13', value: 13 },
+                            { name: 'zd_14', value: 14 },
+                            { name: 'zd_15', value: 15 },
+                            { name: 'zd_16', value: 16 },
+                            { name: 'zd_17', value: 17 },
+                        ],
+                        one: 1,
+                        two: 1,
+                        three: 1,
+                        //筹码
+                        chou: (localStorage.getItem('chou') === null || localStorage.getItem('chou') == '0') ? 500 : Number(localStorage.getItem('chou')),
+                        perXiazhu: 10, //每盘下注
+                        showPerTime: 10, //每盘时间
+                        fanbei: 1, //随机几倍
+                        fanbei_by: {},//当前随机出来的翻倍数字
+                        // perTime: 5,
+                        by: { //当前用户下注的数据
+
+                        },
+                        jg: { //当前中奖的数字
+
+                        },
+                        players: { //所有玩家的数据
+                        },
+                        isAuto: false,
+                        isGoing: false,
+                        name: "", //当前玩家名字
+                        id: '', //当前玩家id
+                        socket: {},
+                        saylist: [],//讲话内容
+                        saytext: '',
+                        coin_color: '' //筹码颜色
+                    }
+                },
+                computed: {
+                    total() {
+                        return this.one + this.two + this.three
+                    }
+                },
+                mounted() {
+                    var name = prompt("输入名字")
+                    this.name = name;
+                    // this.players[name] = {}
+
+                    // var socket = io('http://localhost:3000');
+                    var socket = io();
+                    this.socket = socket
+
+                    const coin_color_arr = ["green", "red", "black", "blue", "#a900ff", "#636363", "#064592"]
+                    var index = Math.floor(Math.random() * 7)
+
+                    var date = new Date()
+                    var idStr = date.getHours() + "" + date.getMinutes() + date.getSeconds() + Math.round(Math.random() * 100)
+                    this.id = idStr
+                    this.coin_color = coin_color_arr[index]
+
+                    var newPlayey = { id: idStr, username: name, chou: this.chou, by: {}, coin_color: coin_color_arr[index] }
+                    socket.emit('comming', newPlayey);
+
+                    //所有玩家
+                    socket.on('getplarys', (data) => {
+                        for (var key in data) {
+                            var _p = data[key]
+                            this.$set(this.players, _p.id, _p)
+                        }
+
+                    });
+
+                    socket.on('someonecomeing', (data) => {
+                        console.log(data.username + "进来了");
+                        this.$set(this.players, data.id, {
+                            id: data.id,
+                            chou: data.chou,
+                            username: data.username,
+                            coin_color: data.coin_color,
+                            by: {}
+                        })
+                    });
+
+                    //倒计时
+                    socket.on('time', (data) => {
+                        this.showPerTime = data.showPerTime
+                    });
+
+                    //骰子结果
+                    socket.on('result', (data) => {
+                        this.one = data.one
+                        this.two = data.two
+                        this.three = data.three
+                        this.go()
+                    });
+
+                    //更新玩家筹码
+                    socket.on('updateplayer', (data) => {
+                        var player = this.players[data.id]
+                        if (player) {
+                            player.chou = data.chou
+                        }
+                    });
+
+                    //重置，开始下一盘
+                    socket.on('reset', (data) => {
+                        this.reset(data.showPerTime)
+                    });
+
+                    //玩家下注
+                    socket.on('xiazhu', (data) => {
+                        var player = this.players[data.id]
+                        player.chou = data.chou
+                        if (player.by[data.by_name] !== undefined) {
+                            player.by[data.by_name].money += data.money
+                        } else {
+                            this.$set(player.by, data.by_name, { money: data.money })
+                        }
+
+                    });
+
+                     //玩家出局
+                    socket.on('out', (data) => {
+                        console.log("out", data)
+                        this.$delete(this.players, data.id)
+                    });
+
+                    //玩家说话
+                    socket.on('say', (data) => {
+                        this.saylist.push(data.saytext)
+                    });
+
+                },
+                methods: {
+                    say() {
+                        var date = new Date()
+                        var dateStr = date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
+                        this.socket.emit('say', { saytext: dateStr + "    " + this.name + " : " + this.saytext });
+                        this.saytext = ""
+                    },
+                    //
+                    showChou2(player, item) {
+                        if (player.by[item.name] !== undefined) {
+                            return player.by[item.name].money
+                        } else {
+                            return 0;
+                        }
+                    },
+                    //下注
+                    xiazhu(item, money) { 
+                        if (this.isGoing) {
+                            return
+                        }
+
+                        if (this.chou - money < 0) {
+                            alert("gg了")
+                            return;
+                        }
+
+                        if (this.by[item.name] !== undefined) {
+                            this.by[item.name].money += money
+                        } else {
+                            this.$set(this.by, item.name, { money: money })
+                        }
+
+                        this.chou -= money
+
+
+                        this.socket.emit('xiazhu', { id: this.id, chou: this.chou, username: this.name, by_name: item.name, money: money });
+                    },
+                    //根据骰子结果，计算玩家获奖情况
+                    go() {
+                        this.isGoing = true
+
+                        var one = this.one
+                        var two = this.two
+                        var three = this.three
+                        var total = one + two + three
+
+
+                        if (one === two && two === three) {
+
+                            this.$set(this.jg, 'w', { count: 1 })
+                            this.$set(this.jg, 'w_' + one, { count: 1 })
+                        } else {
+                            if (total <= 10) {
+                                this.$set(this.jg, 's', { count: 1 })
+                            } else {
+                                this.$set(this.jg, 'b', { count: 1 })
+                            }
+
+                        }
+
+                        this.$set(this.jg, 'zd_' + total, { count: 1 })
+
+                        //单个点数
+                        if (this.jg['d_' + one]) {
+                            this.jg['d_' + one].count += 1
+                        } else {
+                            this.$set(this.jg, 'd_' + one, { count: 1 })
+                        }
+
+                        if (this.jg['d_' + two]) {
+                            this.jg['d_' + two].count += 1
+                        } else {
+                            this.$set(this.jg, 'd_' + two, { count: 1 })
+                        }
+
+                        if (this.jg['d_' + three]) {
+                            this.jg['d_' + three].count += 1
+                        } else {
+                            this.$set(this.jg, 'd_' + three, { count: 1 })
+                        }
+
+
+                        ////选了随机翻倍的话， 计算随机出现的方格 ， 乱写的游戏规则，真实澳门赌场骰子没有这个规则的。。
+                        if (this.fanbei >= 2) {
+                            switch (this.fanbei) {
+                                case 2:
+                                    //围骰中选一个
+                                    var index = Math.floor(Math.random() * 6)
+                                    this.$set(this.fanbei_by, this.w_list[index].name, '')
+
+                                    //总点数中选4个
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+
+
+                                    //单个点数中选3个
+                                    index = Math.floor(Math.random() * this.d_list.length)
+                                    this.$set(this.fanbei_by, this.d_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.d_list.length)
+                                    this.$set(this.fanbei_by, this.d_list[index].name, '')
+                                    break;
+                                case 3:
+                                    //围骰中选一个
+                                    var index = Math.floor(Math.random() * 6)
+                                    this.$set(this.fanbei_by, this.w_list[index].name, '')
+
+                                    //总点数中选3个
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.zd_list.length)
+                                    this.$set(this.fanbei_by, this.zd_list[index].name, '')
+
+
+                                    //单个点数中选2个
+                                    index = Math.floor(Math.random() * this.d_list.length)
+                                    this.$set(this.fanbei_by, this.d_list[index].name, '')
+                                    index = Math.floor(Math.random() * this.d_list.length)
+                                    this.$set(this.fanbei_by, this.d_list[index].name, '')
+                                    break;
+                            }
+                        }
+
+                        //计算中的金额
+                        var _t = 0;
+                        for (var key in this.jg) {
+                            if (this.by[key] !== undefined) {
+                                //赔率
+                                var peilv = this.pei_biao[key]
+                                //中奖金额   this.jg[key].count 全部为 1 除了单个点数的 ，因为个点数的有可能 2 2 3 这种骰子，所以用count记录
+                                var _amount = this.by[key].money * peilv * this.jg[key].count
+                                //判断有无选择随机几倍，是否在随机中的选项中
+                                if (this.fanbei_by[key] !== undefined) {
+                                    _amount = _amount * this.fanbei
+                                }
+                                //this.by[key].money 为本金
+                                _t += _amount + this.by[key].money
+                            }
+                        }
+
+
+                        this.chou += _t;
+
+                        localStorage.setItem('chou', this.chou)
+
+                        // setTimeout(() => {
+                        //     this.reset()
+                        // }, 2000)
+
+                        //推送玩家的获奖结果
+                        this.socket.emit('result_ed', { id: this.id, username: this.name, chou: this.chou });
+
+                    },
+                    aotugo() {
+                        this.isAuto = true
+                    },
+                    cancel_aotugo() {
+                        this.isAuto = false
+                    },
+                    reset(showPerTime) {
+                        var _by = this.by
+
+                        this.jg = {};
+                        this.by = {};
+                        this.fanbei_by = {}
+                        this.isGoing = false;
+                        this.showPerTime = showPerTime
+
+                        for (var key in this.players) {
+                            this.players[key].by = {}
+                        }
+
+                        if (this.isAuto) {
+                            for (var key in _by) {
+                                this.xiazhu({ name: key }, _by[key].money)
+                            }
+                        }
+
+
+                    },
+                    //重置开始筹码
+                    geiwoqian() {
+                        localStorage.setItem('chou', 500)
+                        this.chou = 500
+                    }
+                }
+            }
+        }
+
+    })
+
+</script>
